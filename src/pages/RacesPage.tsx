@@ -2,7 +2,20 @@ import React, { useState } from "react";
 import RaceList from "../components/RaceList";
 import RaceForm from "../components/RaceForm";
 import { Typography, Button, Box } from "@mui/material";
-import { Race } from "../types";
+
+interface Race {
+  _id: string;
+  name: string;
+  startTime: string;
+  endTime: string | null;
+  description: string;
+  racers: Racer[];
+}
+
+interface Racer {
+  _id: string;
+  name: string;
+}
 
 const RacesPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);

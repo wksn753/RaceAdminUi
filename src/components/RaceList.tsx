@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from "@mui/material";
-import { Race } from "../types";
+
+interface Racer {
+  _id: string;
+  name: string;
+}
+
+interface Race {
+  _id: string;
+  name: string;
+  startTime: string;
+  endTime: string | null;
+  description: string;
+  racers: Racer[];
+}
 
 interface RaceListProps {
   onEdit: (race: Race) => void;
@@ -14,7 +27,7 @@ const RaceList: React.FC<RaceListProps> = ({ onEdit, refresh }) => {
   useEffect(() => {
     const fetchRaces = async () => {
       try {
-        const response = await axios.get<Race[]>("http://localhost:3000/api/tracker/races");
+        const response = await axios.get("http://localhost:3000/api/tracker/races");
         setRaces(response.data);
       } catch (error) {
         console.error("Error fetching races:", error);

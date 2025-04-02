@@ -1,7 +1,21 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { TextField, Button, Box, Typography, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent } from "@mui/material";
-import { Race, Racer } from "../types";
+import { TextField, Button, Box, Typography, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import { SelectChangeEvent } from '@mui/material/Select';
+
+interface Racer {
+  _id: string;
+  name: string;
+}
+
+interface Race {
+  _id: string;
+  name: string;
+  startTime: string;
+  endTime: string | null;
+  description: string;
+  racers: Racer[];
+}
 
 interface RaceFormProps {
   race: Race | null;
@@ -21,7 +35,7 @@ const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
   useEffect(() => {
     const fetchRacers = async () => {
       try {
-        const response = await axios.get<Racer[]>("http://localhost:3000/api/tracker/racers");
+        const response = await axios.get("http://localhost:3000/api/tracker/racers");
         setAvailableRacers(response.data);
       } catch (error) {
         console.error("Error fetching racers:", error);
@@ -45,7 +59,8 @@ const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
   };
 
   const handleRacersChange = (e: SelectChangeEvent<string[]>) => {
-    setFormData({ ...formData, racers: e.target.value as string[] });
+    const value = e.target.value as string[];
+    setFormData({ ...formData, racers: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,13 +127,7 @@ const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
       />
       <FormControl fullWidth margin="normal">
         <InputLabel>Racers</InputLabel>
-        <Select
-          multiple
-          name="racers"
-          value={formData.racers}
-          onChange={handleRacersChange}
-          label="Racers"
-        >
+        <Select multiple name="racers" value={formData.racers} onChange={handleRacersChange} label="Racers">
           {availableRacers.map((racer) => (
             <MenuItem key={racer._id} value={racer._id}>
               {racer.name}

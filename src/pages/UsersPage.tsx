@@ -2,7 +2,13 @@ import React, { useState } from "react";
 import UserList from "../components/UserList";
 import UserForm from "../components/UserForm";
 import { Typography, Button, Box } from "@mui/material";
-import { User } from "../types";
+
+interface User {
+  _id: string;
+  username: string;
+  type: string;
+  createdAt: string;
+}
 
 const UsersPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
