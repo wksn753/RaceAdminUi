@@ -56,7 +56,17 @@ const LiveTrackingPage: React.FC = () => {
   useEffect(() => {
     const fetchRaces = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/tracker/races");
+        const token = localStorage.getItem('token');
+        
+        const response = await axios.post("https://dataapi-qy43.onrender.com/raceManagement/all",
+          {}, // Empty request body
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+
+        );
         setRaces(response.data);
       } catch (error) {
         console.error("Error fetching races:", error);

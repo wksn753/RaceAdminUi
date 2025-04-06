@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from "@mui/material";
 
+const BASE_URL = "https://dataapi-qy43.onrender.com";
+
 interface Racer {
   _id: string;
-  name: string;
+  username: string; // Changed to match your backend which populates 'username'
 }
 
 interface Race {
@@ -23,22 +25,49 @@ interface RaceListProps {
 
 const RaceList: React.FC<RaceListProps> = ({ onEdit, refresh }) => {
   const [races, setRaces] = useState<Race[]>([]);
-
+  
   useEffect(() => {
     const fetchRaces = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/tracker/races");
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
+        
+        // Make request to the all races endpoint
+        const response = await axios.post(
+          `${BASE_URL}/raceManagement/all`,
+          {}, // Empty request body
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
         setRaces(response.data);
       } catch (error) {
         console.error("Error fetching races:", error);
       }
     };
+    
     fetchRaces();
   }, [refresh]);
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:3000/api/tracker/races/${id}`);
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      // Make request to the delete endpoint
+      await axios.post(
+        `${BASE_URL}/raceManagement/delete`,
+        { id }, // ID in request body
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      
+      // Update the UI by removing the deleted race
       setRaces(races.filter((race) => race._id !== id));
     } catch (error) {
       console.error("Error deleting race:", error);
@@ -63,7 +92,9 @@ const RaceList: React.FC<RaceListProps> = ({ onEdit, refresh }) => {
               <TableCell>{race.name}</TableCell>
               <TableCell>{new Date(race.startTime).toLocaleString()}</TableCell>
               <TableCell>{race.endTime ? new Date(race.endTime).toLocaleString() : "Ongoing"}</TableCell>
-              <TableCell>{race.racers.map((racer) => racer.name).join(", ")}</TableCell>
+              <TableCell>
+                {race.racers.map((racer) => racer.username).join(", ")}
+              </TableCell>
               <TableCell>
                 <Button onClick={() => onEdit(race)} color="primary">
                   Edit

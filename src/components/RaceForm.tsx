@@ -5,7 +5,7 @@ import { SelectChangeEvent } from '@mui/material/Select';
 
 interface Racer {
   _id: string;
-  name: string;
+  username: string; // Changed from 'name' to match User model
 }
 
 interface Race {
@@ -22,6 +22,8 @@ interface RaceFormProps {
   onClose: () => void;
 }
 
+const BASE_URL = "https://dataapi-qy43.onrender.com";
+
 const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -32,11 +34,26 @@ const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
   });
   const [availableRacers, setAvailableRacers] = useState<Racer[]>([]);
 
+  // Get token from localStorage or your auth system
+  const getAuthHeaders = () => ({
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}` // Adjust based on your auth implementation
+    }
+  });
+
   useEffect(() => {
     const fetchRacers = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/tracker/racers");
-        setAvailableRacers(response.data);
+        const response = await axios.post(
+          `${BASE_URL}/auth/all`, 
+          {}, 
+          getAuthHeaders()
+        );
+        // Assuming your User model returns username instead of name
+        setAvailableRacers(response.data.map((user: any) => ({
+          _id: user._id,
+          username: user.username
+        })));
       } catch (error) {
         console.error("Error fetching racers:", error);
       }
@@ -71,10 +88,42 @@ const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
         startTime: formData.startTime ? new Date(formData.startTime).toISOString() : null,
         endTime: formData.endTime ? new Date(formData.endTime).toISOString() : null,
       };
+
       if (race) {
-        await axios.put(`http://localhost:3000/api/tracker/races/${race._id}`, payload);
+        // Update existing race
+        await axios.post(
+          `${BASE_URL}/raceManagement/update`,
+          { id: race._id, ...payload },
+          getAuthHeaders()
+        );
+        
+        // Update racers separately if changed
+        const currentRacers = race.racers.map(r => r._id);
+        const racersToAdd = payload.racers.filter(r => !currentRacers.includes(r));
+        const racersToRemove = currentRacers.filter(r => !payload.racers.includes(r));
+
+        for (const racerId of racersToAdd) {
+          await axios.post(
+            `${BASE_URL}/raceManagement/add-racer`,
+            { id: race._id, racerId },
+            getAuthHeaders()
+          );
+        }
+
+        for (const racerId of racersToRemove) {
+          await axios.post(
+            `${BASE_URL}/raceManagement/remove-racer`,
+            { id: race._id, racerId },
+            getAuthHeaders()
+          );
+        }
       } else {
-        await axios.post("http://localhost:3000/api/tracker/races", payload);
+        // Create new race
+        await axios.post(
+          `${BASE_URL}/raceManagement/create`,
+          payload,
+          getAuthHeaders()
+        );
       }
       onClose();
     } catch (error) {
@@ -130,7 +179,7 @@ const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
         <Select multiple name="racers" value={formData.racers} onChange={handleRacersChange} label="Racers">
           {availableRacers.map((racer) => (
             <MenuItem key={racer._id} value={racer._id}>
-              {racer.name}
+              {racer.username} {/* Changed from racer.name to racer.username */}
             </MenuItem>
           ))}
         </Select>
