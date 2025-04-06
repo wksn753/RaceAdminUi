@@ -104,17 +104,17 @@ const LiveTrackingPage: React.FC = () => {
     if (!race) return;
 
     setRacers(race.racers);
-    console.log(race.racers);
     setTrackerData([]);
     setError(null);
 
     // Fetch initial data from Firebase
     const fetchInitialData = async () => {
+      const initialData: TrackerData[] = [];
+
       try {
         const q = query(carTrackRef, where("RaceID", "==", race.name));
         const querySnapshot = await getDocs(q);
 
-        const initialData: TrackerData[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data() as CarTrackDocument;
           const { latitude, longitude } = parseLocation(data.Location);
@@ -128,16 +128,19 @@ const LiveTrackingPage: React.FC = () => {
             longitude,
             accel: { x: parseFloat(data.Acceleration) || 0, y: 0, z: 0 },
             date: parseTime(data.Time).toISOString(),
-            racerId: race.racers.find((racer) => racer.name === data.CarID)?._id || "",
+            racerId: race.racers.find((racer) => racer.username === data.CarID)?._id || "",
             RaceID: data.RaceID,
             CarID: data.CarID,
           });
         });
-        console.log(initialData);
         setTrackerData(initialData);
       } catch (error) {
         setError("Failed to fetch initial data from Firebase.");
         console.error("Firebase error:", error);
+      }finally{
+        console.log(race.racers);
+
+        console.log(initialData);
       }
     };
 

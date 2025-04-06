@@ -39,7 +39,7 @@ const TrackerTable: React.FC<TrackerTableProps> = ({ trackerData, racers }) => {
             const racer = racers.find((r) => r._id === data.racerId || r.name === data.CarID);
             return (
               <TableRow key={data.documentId}>
-                <TableCell>{racer ? racer.name : "Unknown"}</TableCell>
+                <TableCell>{racer ? racer.username : "Unknown"}</TableCell>
                 <TableCell>{data.latitude || "N/A"}</TableCell>
                 <TableCell>{data.longitude || "N/A"}</TableCell>
                 <TableCell>{data.accel?.x || "N/A"}</TableCell>
