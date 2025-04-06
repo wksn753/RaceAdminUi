@@ -5,8 +5,9 @@ import TrackerTable from "../components/TrackerTable";
 import TrackerMap from "../components/TrackerMap";
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore, collection, query, where, getDocs, onSnapshot, DocumentData } from "firebase/firestore";
+import { getFirestore, collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import { parse, isValid } from "date-fns";
+
 // Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBc-FaimZqp-g0S_nRh2OuXxfWCxnGhYhQ",
@@ -55,7 +56,7 @@ interface TrackerData {
   CarID: string;
 }
 
-  const LiveTrackingPage: React.FC = () => {
+const LiveTrackingPage: React.FC = () => {
   const [races, setRaces] = useState<Race[]>([]);
   const [selectedRace, setSelectedRace] = useState<string>("");
   const [trackerData, setTrackerData] = useState<TrackerData[]>([]);
@@ -88,6 +89,7 @@ interface TrackerData {
         setError(error.message || "Failed to load races. Please try again.");
         console.error("Error fetching races:", error);
       } finally {
+        console.log("Races fetched:", races);
         setLoading(false);
       }
     };
@@ -102,6 +104,7 @@ interface TrackerData {
     if (!race) return;
 
     setRacers(race.racers);
+    console.log(race.racers);
     setTrackerData([]);
     setError(null);
 
@@ -109,18 +112,20 @@ interface TrackerData {
     const fetchInitialData = async () => {
       try {
         const q = query(carTrackRef, where("RaceID", "==", race.name));
-        
         const querySnapshot = await getDocs(q);
 
         const initialData: TrackerData[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data() as CarTrackDocument;
-          console.log("Fetched data:", data); // Log the fetched data
+          const { latitude, longitude } = parseLocation(data.Location);
+          if (latitude === null || longitude === null) {
+            console.warn(`Invalid location for document ${doc.id}: ${data.Location}`);
+          }
           initialData.push({
             documentId: doc.id,
             ...data,
-            latitude: parseLocation(data.Location)?.latitude || null,
-            longitude: parseLocation(data.Location)?.longitude || null,
+            latitude,
+            longitude,
             accel: { x: parseFloat(data.Acceleration) || 0, y: 0, z: 0 },
             date: parseTime(data.Time).toISOString(),
             racerId: race.racers.find((racer) => racer.name === data.CarID)?._id || "",
@@ -128,7 +133,7 @@ interface TrackerData {
             CarID: data.CarID,
           });
         });
-
+        console.log(initialData);
         setTrackerData(initialData);
       } catch (error) {
         setError("Failed to fetch initial data from Firebase.");
@@ -150,13 +155,17 @@ interface TrackerData {
           if (change.type === "added") {
             setTrackerData((prev) => {
               if (prev.some((item) => item.documentId === documentId)) return prev; // Avoid duplicates
+              const { latitude, longitude } = parseLocation(data.Location);
+              if (latitude === null || longitude === null) {
+                console.warn(`Invalid location for document ${documentId}: ${data.Location}`);
+              }
               return [
                 ...prev,
                 {
                   documentId,
                   ...data,
-                  latitude: parseLocation(data.Location)?.latitude || null,
-                  longitude: parseLocation(data.Location)?.longitude || null,
+                  latitude,
+                  longitude,
                   accel: { x: parseFloat(data.Acceleration) || 0, y: 0, z: 0 },
                   date: parseTime(data.Time).toISOString(),
                   racerId: race.racers.find((racer) => racer.name === data.CarID)?._id || "",
@@ -201,39 +210,39 @@ interface TrackerData {
 
   const parseLocation = (location: string | undefined): { latitude: number | null; longitude: number | null } => {
     if (!location) return { latitude: null, longitude: null };
-  
+
     // Adjust the regex pattern to match the new format
     const match = location.match(/^\[([\d.-]+)° ([NS]), ([\d.-]+)° ([EW])\]$/);
     if (!match) return { latitude: null, longitude: null };
-  
+
     let latitude = parseFloat(match[1]);
     if (match[2] === "S") latitude = -latitude;
-  
+
     let longitude = parseFloat(match[3]);
     if (match[4] === "W") longitude = -longitude;
-  
+
     return { latitude, longitude };
   };
-  
+
   const parseTime = (rawTime: unknown): Date => {
-    if (typeof rawTime !== 'string' || rawTime.trim() === '') {
+    if (typeof rawTime !== "string" || rawTime.trim() === "") {
       console.warn("parseTime: rawTime is not a valid string, using current date as fallback");
       return new Date();
     }
-  
+
     // Clean up time string — adjust UTC offset if needed
     const cleanedTimeStr = rawTime.replace(/UTC([+-]\d+)/, (_, offset) => {
-      return offset.includes(':') ? offset : `${offset}:00`;
+      return offset.includes(":") ? offset : `${offset}:00`;
     });
-  
+
     // Try parsing standard format: "yyyy-MM-dd HH:mm:ssXXX"
     const parsedDate = parse(cleanedTimeStr, "yyyy-MM-dd HH:mm:ssXXX", new Date());
     if (isValid(parsedDate)) return parsedDate;
-  
+
     // Try custom format: "dd/MM/yyyy HH:mm:ssXXX"
     const customParsed = parse(cleanedTimeStr, "dd/MM/yyyy HH:mm:ssXXX", new Date());
     if (isValid(customParsed)) return customParsed;
-  
+
     console.warn(`parseTime: Failed to parse "${rawTime}" (cleaned: "${cleanedTimeStr}"), using current date`);
     return new Date();
   };
@@ -241,7 +250,7 @@ interface TrackerData {
   const handleRaceChange = (event: SelectChangeEvent) => {
     setSelectedRace(event.target.value);
   };
-  
+
   return (
     <div>
       <Typography variant="h4" gutterBottom>
