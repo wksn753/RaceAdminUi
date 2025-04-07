@@ -8,6 +8,7 @@ import LiveTrackingPage from "./pages/LiveTrackingPage";
 import LoginPage from "./pages/LoginPage";
 import "./App.css";
 
+
 interface ProtectedRouteProps {
   element: ReactElement;
   requiredRole?: string;
