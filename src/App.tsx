@@ -6,6 +6,7 @@ import UsersPage from "./pages/UsersPage";
 import RacesPage from "./pages/RacesPage";
 import LiveTrackingPage from "./pages/LiveTrackingPage";
 import LoginPage from "./pages/LoginPage";
+import LeaderboardPage from "./pages/LeaderboardPage";
 import "./App.css";
 
 
@@ -104,6 +105,11 @@ const App: React.FC = () => {
                 Live Tracking
               </Button>
 
+              {/* All users can see Leader Board*/}
+              <Button color="inherit" component={Link} to="/leader-Board">
+                Leader Board
+              </Button>
+
               {/* Admin-specific navigation items could go here */}
               {isAdmin && (
                 <Button color="inherit" component={Link} to="/admin-dashboard">
@@ -134,7 +140,9 @@ const App: React.FC = () => {
           <Route path="/" element={<ProtectedRoute element={<UsersPage />} />} />
           <Route path="/races" element={<ProtectedRoute element={<RacesPage />} />} />
           <Route path="/live-tracking" element={<ProtectedRoute element={<LiveTrackingPage />} />} />
+          <Route path="/leader-Board" element={<ProtectedRoute element={<LeaderboardPage />} />} />
           
+
           {/* Admin-only routes */}
           {/* Example: <Route path="/admin-dashboard" element={<ProtectedRoute element={<AdminDashboardPage />} requiredRole="admin" />} /> */}
           

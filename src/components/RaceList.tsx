@@ -6,7 +6,12 @@ const BASE_URL = "https://dataapi-qy43.onrender.com";
 
 interface Racer {
   _id: string;
-  username: string; // Changed to match your backend which populates 'username'
+  username: string;
+}
+
+interface Coordinate {
+  latitude: number;
+  longitude: number;
 }
 
 interface Race {
@@ -15,6 +20,8 @@ interface Race {
   startTime: string;
   endTime: string | null;
   description: string;
+  startingPoint?: Coordinate;
+  endingPoint?: Coordinate;
   racers: Racer[];
 }
 
@@ -29,13 +36,11 @@ const RaceList: React.FC<RaceListProps> = ({ onEdit, refresh }) => {
   useEffect(() => {
     const fetchRaces = async () => {
       try {
-        // Get token from localStorage
         const token = localStorage.getItem('token');
         
-        // Make request to the all races endpoint
         const response = await axios.post(
           `${BASE_URL}/raceManagement/all`,
-          {}, // Empty request body
+          {},
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -53,13 +58,11 @@ const RaceList: React.FC<RaceListProps> = ({ onEdit, refresh }) => {
 
   const handleDelete = async (id: string) => {
     try {
-      // Get token from localStorage
       const token = localStorage.getItem('token');
       
-      // Make request to the delete endpoint
       await axios.post(
         `${BASE_URL}/raceManagement/delete`,
-        { id }, // ID in request body
+        { id },
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -67,11 +70,16 @@ const RaceList: React.FC<RaceListProps> = ({ onEdit, refresh }) => {
         }
       );
       
-      // Update the UI by removing the deleted race
       setRaces(races.filter((race) => race._id !== id));
     } catch (error) {
       console.error("Error deleting race:", error);
     }
+  };
+
+  // Helper function to format coordinates
+  const formatCoordinates = (point?: Coordinate) => {
+    if (!point) return "Not set";
+    return `${point.latitude.toFixed(4)}, ${point.longitude.toFixed(4)}`;
   };
 
   return (
@@ -82,6 +90,8 @@ const RaceList: React.FC<RaceListProps> = ({ onEdit, refresh }) => {
             <TableCell>Name</TableCell>
             <TableCell>Start Time</TableCell>
             <TableCell>End Time</TableCell>
+            <TableCell>Starting Point</TableCell>
+            <TableCell>Ending Point</TableCell>
             <TableCell>Racers</TableCell>
             <TableCell>Actions</TableCell>
           </TableRow>
@@ -92,6 +102,8 @@ const RaceList: React.FC<RaceListProps> = ({ onEdit, refresh }) => {
               <TableCell>{race.name}</TableCell>
               <TableCell>{new Date(race.startTime).toLocaleString()}</TableCell>
               <TableCell>{race.endTime ? new Date(race.endTime).toLocaleString() : "Ongoing"}</TableCell>
+              <TableCell>{formatCoordinates(race.startingPoint)}</TableCell>
+              <TableCell>{formatCoordinates(race.endingPoint)}</TableCell>
               <TableCell>
                 {race.racers.map((racer) => racer.username).join(", ")}
               </TableCell>

@@ -9,16 +9,24 @@ import { getFirestore, collection, query, where, getDocs, onSnapshot } from "fir
 import { parse, isValid } from "date-fns";
 
 // Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBc-FaimZqp-g0S_nRh2OuXxfWCxnGhYhQ",
-  authDomain: "monitorapp-35a6d.firebaseapp.com",
-  projectId: "monitorapp-35a6d",
-  storageBucket: "monitorapp-35a6d.firebasestorage.app",
-  messagingSenderId: "806754364883",
-  appId: "1:806754364883:web:0dc8773ae37d1299285326",
-  measurementId: "G-E0D1WJD1RL",
-};
-
+// const firebaseConfig = {
+//   apiKey: "AIzaSyBc-FaimZqp-g0S_nRh2OuXxfWCxnGhYhQ",
+//   authDomain: "monitorapp-35a6d.firebaseapp.com",
+//   projectId: "monitorapp-35a6d",
+//   storageBucket: "monitorapp-35a6d.firebasestorage.app",
+//   messagingSenderId: "806754364883",
+//   appId: "1:806754364883:web:0dc8773ae37d1299285326",
+//   measurementId: "G-E0D1WJD1RL",
+// };
+const firebaseConfig={
+  apiKey: "AIzaSyD2EC1qzcLkMhyNLaX0UhZUeenX8saZo1w",
+  authDomain: "rutina-orion.firebaseapp.com",
+  projectId: "rutina-orion",
+  storageBucket: "rutina-orion.firebasestorage.app",
+  messagingSenderId: "873985298780",
+  appId: "1:873985298780:web:2c2634659c6a0d4805f199",
+  measurementId: "G-SL7FG7FHXM"
+  };
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);

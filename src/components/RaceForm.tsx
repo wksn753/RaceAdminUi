@@ -2,10 +2,28 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { TextField, Button, Box, Typography, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { SelectChangeEvent } from '@mui/material/Select';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import "leaflet/dist/leaflet.css";
+import L from 'leaflet';
+import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
+import "leaflet-geosearch/dist/geosearch.css";
+
+// Fix for default marker icon in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png',
+});
 
 interface Racer {
   _id: string;
-  username: string; // Changed from 'name' to match User model
+  username: string;
+}
+
+interface Coordinate {
+  latitude: number;
+  longitude: number;
 }
 
 interface Race {
@@ -14,6 +32,8 @@ interface Race {
   startTime: string;
   endTime: string | null;
   description: string;
+  startingPoint?: Coordinate;
+  endingPoint?: Coordinate;
   racers: Racer[];
 }
 
@@ -24,20 +44,62 @@ interface RaceFormProps {
 
 const BASE_URL = "https://dataapi-qy43.onrender.com";
 
+const MapClickHandler: React.FC<{
+  onCoordinateSelect: (latlng: L.LatLng) => void;
+}> = ({ onCoordinateSelect }) => {
+  useMapEvents({
+    click(e) {
+      onCoordinateSelect(e.latlng);
+    },
+  });
+  return null;
+};
+
+const SearchControl: React.FC<{ onSearchResult: (latlng: L.LatLng) => void }> = ({ onSearchResult }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    const provider = new OpenStreetMapProvider();
+    const searchControl = new GeoSearchControl({
+      provider,
+      style: 'bar',
+      showMarker: true,
+      autoClose: true,
+      retainZoomLevel: false,
+      animateZoom: true,
+      keepResult: false,
+    });
+
+    map.addControl(searchControl);
+
+    map.on('geosearch/showlocation', (result) => {
+      const latlng = L.latLng(result.location.y, result.location.x);
+      onSearchResult(latlng);
+    });
+
+    return () => {
+      map.removeControl(searchControl);
+    };
+  }, [map, onSearchResult]);
+
+  return null;
+};
+
 const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
   const [formData, setFormData] = useState({
     name: "",
     startTime: "",
     endTime: "",
     description: "",
+    startingPoint: undefined as Coordinate | undefined,
+    endingPoint: undefined as Coordinate | undefined,
     racers: [] as string[],
   });
   const [availableRacers, setAvailableRacers] = useState<Racer[]>([]);
 
-  // Get token from localStorage or your auth system
   const getAuthHeaders = () => ({
     headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}` // Adjust based on your auth implementation
+      Authorization: `Bearer ${localStorage.getItem('token')}`
     }
   });
 
@@ -45,11 +107,10 @@ const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
     const fetchRacers = async () => {
       try {
         const response = await axios.post(
-          `${BASE_URL}/auth/all`, 
-          {}, 
+          `${BASE_URL}/auth/all`,
+          {},
           getAuthHeaders()
         );
-        // Assuming your User model returns username instead of name
         setAvailableRacers(response.data.map((user: any) => ({
           _id: user._id,
           username: user.username
@@ -66,6 +127,8 @@ const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
         startTime: race.startTime ? new Date(race.startTime).toISOString().slice(0, 16) : "",
         endTime: race.endTime ? new Date(race.endTime).toISOString().slice(0, 16) : "",
         description: race.description || "",
+        startingPoint: race.startingPoint,
+        endingPoint: race.endingPoint,
         racers: race.racers.map((racer) => racer._id),
       });
     }
@@ -80,6 +143,20 @@ const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
     setFormData({ ...formData, racers: value });
   };
 
+  const handleStartPointSelect = (latlng: L.LatLng) => {
+    setFormData({
+      ...formData,
+      startingPoint: { latitude: latlng.lat, longitude: latlng.lng }
+    });
+  };
+
+  const handleEndPointSelect = (latlng: L.LatLng) => {
+    setFormData({
+      ...formData,
+      endingPoint: { latitude: latlng.lat, longitude: latlng.lng }
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -87,17 +164,17 @@ const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
         ...formData,
         startTime: formData.startTime ? new Date(formData.startTime).toISOString() : null,
         endTime: formData.endTime ? new Date(formData.endTime).toISOString() : null,
+        startingPoint: formData.startingPoint,
+        endingPoint: formData.endingPoint,
       };
 
       if (race) {
-        // Update existing race
         await axios.post(
           `${BASE_URL}/raceManagement/update`,
           { id: race._id, ...payload },
           getAuthHeaders()
         );
-        
-        // Update racers separately if changed
+
         const currentRacers = race.racers.map(r => r._id);
         const racersToAdd = payload.racers.filter(r => !currentRacers.includes(r));
         const racersToRemove = currentRacers.filter(r => !payload.racers.includes(r));
@@ -118,7 +195,6 @@ const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
           );
         }
       } else {
-        // Create new race
         await axios.post(
           `${BASE_URL}/raceManagement/create`,
           payload,
@@ -174,12 +250,63 @@ const RaceForm: React.FC<RaceFormProps> = ({ race, onClose }) => {
         multiline
         rows={3}
       />
+      
+      {/* Starting Point Map */}
+      <Typography variant="subtitle1" sx={{ mt: 2 }}>Select Starting Point</Typography>
+      <Box sx={{ height: "300px", mb: 2 }}>
+        <MapContainer
+          center={[51.505, -0.09]} // Default center (London)
+          zoom={13}
+          style={{ height: "100%", width: "100%" }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <MapClickHandler onCoordinateSelect={handleStartPointSelect} />
+          <SearchControl onSearchResult={handleStartPointSelect} />
+          {formData.startingPoint && (
+            <Marker position={[formData.startingPoint.latitude, formData.startingPoint.longitude]} />
+          )}
+        </MapContainer>
+      </Box>
+      {formData.startingPoint && (
+        <Typography>
+          Starting Point: {formData.startingPoint.latitude.toFixed(4)}, {formData.startingPoint.longitude.toFixed(4)}
+        </Typography>
+      )}
+
+      {/* Ending Point Map */}
+      <Typography variant="subtitle1" sx={{ mt: 2 }}>Select Ending Point</Typography>
+      <Box sx={{ height: "300px", mb: 2 }}>
+        <MapContainer
+          center={[51.505, -0.09]} // Default center (London)
+          zoom={13}
+          style={{ height: "100%", width: "100%" }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <MapClickHandler onCoordinateSelect={handleEndPointSelect} />
+          <SearchControl onSearchResult={handleEndPointSelect} />
+          {formData.endingPoint && (
+            <Marker position={[formData.endingPoint.latitude, formData.endingPoint.longitude]} />
+          )}
+        </MapContainer>
+      </Box>
+      {formData.endingPoint && (
+        <Typography>
+          Ending Point: {formData.endingPoint.latitude.toFixed(4)}, {formData.endingPoint.longitude.toFixed(4)}
+        </Typography>
+      )}
+
       <FormControl fullWidth margin="normal">
         <InputLabel>Racers</InputLabel>
         <Select multiple name="racers" value={formData.racers} onChange={handleRacersChange} label="Racers">
           {availableRacers.map((racer) => (
             <MenuItem key={racer._id} value={racer._id}>
-              {racer.username} {/* Changed from racer.name to racer.username */}
+              {racer.username}
             </MenuItem>
           ))}
         </Select>
