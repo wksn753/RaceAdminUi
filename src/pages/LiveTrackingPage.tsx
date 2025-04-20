@@ -8,17 +8,7 @@ import { getAnalytics } from "firebase/analytics";
 import { getFirestore, collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import { parse, isValid } from "date-fns";
 
-// Firebase configuration
-// const firebaseConfig = {
-//   apiKey: "AIzaSyBc-FaimZqp-g0S_nRh2OuXxfWCxnGhYhQ",
-//   authDomain: "monitorapp-35a6d.firebaseapp.com",
-//   projectId: "monitorapp-35a6d",
-//   storageBucket: "monitorapp-35a6d.firebasestorage.app",
-//   messagingSenderId: "806754364883",
-//   appId: "1:806754364883:web:0dc8773ae37d1299285326",
-//   measurementId: "G-E0D1WJD1RL",
-// };
-const firebaseConfig={
+const firebaseConfig = {
   apiKey: "AIzaSyD2EC1qzcLkMhyNLaX0UhZUeenX8saZo1w",
   authDomain: "rutina-orion.firebaseapp.com",
   projectId: "rutina-orion",
@@ -26,14 +16,15 @@ const firebaseConfig={
   messagingSenderId: "873985298780",
   appId: "1:873985298780:web:2c2634659c6a0d4805f199",
   measurementId: "G-SL7FG7FHXM"
-  };
-// Initialize Firebase
+};
+
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
 const carTrackRef = collection(db, "CarTrack");
 
-// Define a more specific type for Firestore CarTrack documents
+const BASE_URL = "https://dataapi-qy43.onrender.com/raceManagement";
+
 interface CarTrackDocument {
   RaceID: string;
   CarID: string;
@@ -45,12 +36,14 @@ interface CarTrackDocument {
 interface Race {
   _id: string;
   name: string;
-  racers: Racer[];
+  racers: { userId: { _id: string; username: string } }[];
+  startingPoint: { latitude: number; longitude: number };
+  endingPoint: { latitude: number; longitude: number };
 }
 
 interface Racer {
   _id: string;
-  name: string;
+  username: string;
 }
 
 interface TrackerData {
@@ -72,50 +65,46 @@ const LiveTrackingPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch races from MongoDB
+  const getAuthHeaders = () => ({
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`
+    }
+  });
+
   useEffect(() => {
     const fetchRaces = async () => {
       setLoading(true);
       setError(null);
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          throw new Error("No token found. Please log in.");
-        }
-
         const response = await axios.post(
-          "https://dataapi-qy43.onrender.com/raceManagement/all",
-          {}, // Empty request body
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          `${BASE_URL}/all`,
+          {},
+          getAuthHeaders()
         );
         setRaces(response.data);
       } catch (error: any) {
         setError(error.message || "Failed to load races. Please try again.");
         console.error("Error fetching races:", error);
       } finally {
-        console.log("Races fetched:", races);
         setLoading(false);
       }
     };
     fetchRaces();
   }, []);
 
-  // Set up Firebase listener when a race is selected
   useEffect(() => {
     if (!selectedRace) return;
 
     const race = races.find((r) => r._id === selectedRace);
     if (!race) return;
 
-    setRacers(race.racers);
+    console.log(race);
+    setRacers(race.racers.map(r => ({ _id: r.userId._id, username: r.userId.username })));
+
+    //setRacers(race.racers.map(r => ({ _id: r.userId._id, username: r.userId.username })));
     setTrackerData([]);
     setError(null);
 
-    // Fetch initial data from Firebase
     const fetchInitialData = async () => {
       const initialData: TrackerData[] = [];
 
@@ -128,15 +117,19 @@ const LiveTrackingPage: React.FC = () => {
           const { latitude, longitude } = parseLocation(data.Location);
           if (latitude === null || longitude === null) {
             console.warn(`Invalid location for document ${doc.id}: ${data.Location}`);
+            return;
+          }
+          const racer = race.racers.find((racer) => racer.userId.username === data.CarID);
+          if (racer) {
+            checkStartEndPoints(race, racer.userId._id, latitude, longitude);
           }
           initialData.push({
             documentId: doc.id,
-            ...data,
+            racerId: racer?.userId._id || "",
             latitude,
             longitude,
             accel: { x: parseFloat(data.Acceleration) || 0, y: 0, z: 0 },
             date: parseTime(data.Time).toISOString(),
-            racerId: race.racers.find((racer) => racer.username === data.CarID)?._id || "",
             RaceID: data.RaceID,
             CarID: data.CarID,
           });
@@ -145,16 +138,11 @@ const LiveTrackingPage: React.FC = () => {
       } catch (error) {
         setError("Failed to fetch initial data from Firebase.");
         console.error("Firebase error:", error);
-      }finally{
-        console.log(race.racers);
-
-        console.log(initialData);
       }
     };
 
     fetchInitialData();
 
-    // Set up real-time listener
     const q = query(carTrackRef, where("RaceID", "==", race.name));
     const unsubscribe = onSnapshot(
       q,
@@ -162,24 +150,29 @@ const LiveTrackingPage: React.FC = () => {
         snapshot.docChanges().forEach((change) => {
           const data = change.doc.data() as CarTrackDocument;
           const documentId = change.doc.id;
+          const { latitude, longitude } = parseLocation(data.Location);
+          if (latitude === null || longitude === null) {
+            console.warn(`Invalid location for document ${documentId}: ${data.Location}`);
+            return;
+          }
+
+          const racer = race.racers.find((racer) => racer.userId.username === data.CarID);
+          if (racer) {
+            checkStartEndPoints(race, racer.userId._id, latitude, longitude,parseTime(data.Time).toISOString());
+          }
 
           if (change.type === "added") {
             setTrackerData((prev) => {
-              if (prev.some((item) => item.documentId === documentId)) return prev; // Avoid duplicates
-              const { latitude, longitude } = parseLocation(data.Location);
-              if (latitude === null || longitude === null) {
-                console.warn(`Invalid location for document ${documentId}: ${data.Location}`);
-              }
+              if (prev.some((item) => item.documentId === documentId)) return prev;
               return [
                 ...prev,
                 {
                   documentId,
-                  ...data,
+                  racerId: racer?.userId._id || "",
                   latitude,
                   longitude,
                   accel: { x: parseFloat(data.Acceleration) || 0, y: 0, z: 0 },
                   date: parseTime(data.Time).toISOString(),
-                  racerId: race.racers.find((racer) => racer.name === data.CarID)?._id || "",
                   RaceID: data.RaceID,
                   CarID: data.CarID,
                 },
@@ -193,12 +186,11 @@ const LiveTrackingPage: React.FC = () => {
                 item.documentId === documentId
                   ? {
                       ...item,
-                      ...data,
-                      latitude: parseLocation(data.Location)?.latitude || null,
-                      longitude: parseLocation(data.Location)?.longitude || null,
+                      racerId: racer?.userId._id || "",
+                      latitude,
+                      longitude,
                       accel: { x: parseFloat(data.Acceleration) || 0, y: 0, z: 0 },
                       date: parseTime(data.Time).toISOString(),
-                      racerId: race.racers.find((racer) => racer.name === data.CarID)?._id || "",
                       RaceID: data.RaceID,
                       CarID: data.CarID,
                     }
@@ -222,7 +214,6 @@ const LiveTrackingPage: React.FC = () => {
   const parseLocation = (location: string | undefined): { latitude: number | null; longitude: number | null } => {
     if (!location) return { latitude: null, longitude: null };
 
-    // Adjust the regex pattern to match the new format
     const match = location.match(/^\[([\d.-]+)° ([NS]), ([\d.-]+)° ([EW])\]$/);
     if (!match) return { latitude: null, longitude: null };
 
@@ -241,21 +232,48 @@ const LiveTrackingPage: React.FC = () => {
       return new Date();
     }
 
-    // Clean up time string — adjust UTC offset if needed
     const cleanedTimeStr = rawTime.replace(/UTC([+-]\d+)/, (_, offset) => {
       return offset.includes(":") ? offset : `${offset}:00`;
     });
 
-    // Try parsing standard format: "yyyy-MM-dd HH:mm:ssXXX"
     const parsedDate = parse(cleanedTimeStr, "yyyy-MM-dd HH:mm:ssXXX", new Date());
     if (isValid(parsedDate)) return parsedDate;
 
-    // Try custom format: "dd/MM/yyyy HH:mm:ssXXX"
     const customParsed = parse(cleanedTimeStr, "dd/MM/yyyy HH:mm:ssXXX", new Date());
     if (isValid(customParsed)) return customParsed;
 
     console.warn(`parseTime: Failed to parse "${rawTime}" (cleaned: "${cleanedTimeStr}"), using current date`);
     return new Date();
+  };
+
+  const checkStartEndPoints = async (race: Race, racerId: string, latitude: number, longitude: number,actionDate?:string) => {
+    const threshold = 0.01; // Adjust based on your needs
+    //log 
+    console.log(latitude+" "+longitude+" "+race.startingPoint.latitude+" "+race.startingPoint.longitude+" "+race.endingPoint.latitude+" "+race.endingPoint.longitude+"")
+    try {
+      if (
+        Math.abs(latitude - race.startingPoint.latitude) < threshold &&
+        Math.abs(longitude - race.startingPoint.longitude) < threshold
+      ) {
+        await axios.post(
+          `${BASE_URL}/start-racer`,
+          { id: race._id, racerId:racerId,startTime:actionDate },
+          getAuthHeaders()
+        );
+      }
+      if (
+        Math.abs(latitude - race.endingPoint.latitude) < threshold &&
+        Math.abs(longitude - race.endingPoint.longitude) < threshold
+      ) {
+        await axios.post(
+          `${BASE_URL}/end-racer`,
+          { id: race._id, racerId:racerId,endTime:actionDate },
+          getAuthHeaders()
+        );
+      }
+    } catch (error) {
+      console.error("Error recording start/end time:", error);
+    }
   };
 
   const handleRaceChange = (event: SelectChangeEvent) => {

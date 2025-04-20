@@ -78,7 +78,7 @@ const LeaderboardPage: React.FC = () => {
       setError(null);
       try {
         const response = await axios.post(
-          `${BASE_URL}/api/races/leaderboard`,
+          `${BASE_URL}/raceManagement/leaderboard`,
           { id: selectedRace },
           getAuthHeaders()
         );
