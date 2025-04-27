@@ -121,7 +121,7 @@ const LiveTrackingPage: React.FC = () => {
           }
           const racer = race.racers.find((racer) => racer.userId.username === data.CarID);
           if (racer) {
-            checkStartEndPoints(race, racer.userId._id, latitude, longitude);
+            checkStartEndPoints(race, racer.userId._id, latitude, longitude,parseTime(data.Time).toISOString());
           }
           initialData.push({
             documentId: doc.id,
@@ -246,7 +246,7 @@ const LiveTrackingPage: React.FC = () => {
     return new Date();
   };
 
-  const checkStartEndPoints = async (race: Race, racerId: string, latitude: number, longitude: number,actionDate?:string) => {
+  const checkStartEndPoints = async (race: Race, racerId: string, latitude: number, longitude: number,actionDate:string) => {
     const threshold = 0.01; // Adjust based on your needs
     //log 
     console.log(latitude+" "+longitude+" "+race.startingPoint.latitude+" "+race.startingPoint.longitude+" "+race.endingPoint.latitude+" "+race.endingPoint.longitude+"")
@@ -304,18 +304,19 @@ const LiveTrackingPage: React.FC = () => {
       </FormControl>
       {selectedRace && (
         <>
+        <Box>
+            <Typography variant="h5" gutterBottom>
+              Live Map
+            </Typography>
+            <TrackerMap trackerData={trackerData} racers={racers} />
+          </Box>
           <Box sx={{ mb: 4 }}>
             <Typography variant="h5" gutterBottom>
               Tracker Data
             </Typography>
             <TrackerTable trackerData={trackerData} racers={racers} />
           </Box>
-          <Box>
-            <Typography variant="h5" gutterBottom>
-              Live Map
-            </Typography>
-            <TrackerMap trackerData={trackerData} racers={racers} />
-          </Box>
+          
         </>
       )}
     </div>

@@ -35,12 +35,12 @@ const RacesPage: React.FC = () => {
 
   return (
     <div>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      {/* <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}> */}
         <Typography variant="h4">Races</Typography>
         <Button variant="contained" onClick={() => setShowForm(true)}>
           Add Race
         </Button>
-      </Box>
+     {/*  </Box> */}
       {showForm && <RaceForm race={selectedRace} onClose={handleFormClose} />}
       <RaceList onEdit={handleEdit} refresh={refresh} />
     </div>

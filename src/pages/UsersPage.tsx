@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import UserList from "../components/UserList";
 import UserForm from "../components/UserForm";
-import { Typography, Button, Box } from "@mui/material";
+import { Typography,  Box } from "@mui/material";
+import { Button } from "@/components/ui/button"
+import {ProfileForm} from "../components/UserManagent/UserFormTemplate";
 
 interface User {
   _id: string;
@@ -30,11 +32,11 @@ const UsersPage: React.FC = () => {
     <div>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4">Users</Typography>
-        <Button variant="contained" onClick={() => setShowForm(true)}>
+        <Button  onClick={() => setShowForm(true)}>
           Add User
         </Button>
       </Box>
-      {showForm && <UserForm user={selectedUser} onClose={handleFormClose} />}
+      {showForm && <ProfileForm user={selectedUser} onClose={handleFormClose} />}
       <UserList onEdit={handleEdit} refresh={refresh} />
     </div>
   );

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import {DataTable} from "../components/data-table";
+import {UserColumns} from "../types/Users";
+
 import { 
   Table, 
   TableBody, 
@@ -113,12 +116,13 @@ const UserList: React.FC<UserListProps> = ({ onEdit, refresh }) => {
       </Box>
     );
   }
+  const UserColumnsData = UserColumns(onEdit, handleDelete);
 
   return (
     <>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       
-      <TableContainer component={Paper}>
+      {/* <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
@@ -152,7 +156,11 @@ const UserList: React.FC<UserListProps> = ({ onEdit, refresh }) => {
             )}
           </TableBody>
         </Table>
-      </TableContainer>
+      </TableContainer> */}
+
+    <div className="container mx-auto py-10">
+      <DataTable columns={UserColumnsData} data={users} />
+    </div>
     </>
   );
 };
