@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import RaceList from "../components/RaceList";
-import RaceForm from "../components/RaceForm";
-import { Typography, Button, Box } from "@mui/material";
+
+import { Typography, Box } from "@mui/material";
+import { Button } from "@/components/ui/button"
+import {RacesForm} from "../components/RaceManagement/RacesForm"
 
 interface Race {
   _id: string;
@@ -37,11 +39,11 @@ const RacesPage: React.FC = () => {
     <div>
       {/* <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}> */}
         <Typography variant="h4">Races</Typography>
-        <Button variant="contained" onClick={() => setShowForm(true)}>
+        <Button onClick={() => setShowForm(true)}>
           Add Race
         </Button>
      {/*  </Box> */}
-      {showForm && <RaceForm race={selectedRace} onClose={handleFormClose} />}
+      {showForm && <RacesForm race={selectedRace} onClose={handleFormClose} />}
       <RaceList onEdit={handleEdit} refresh={refresh} />
     </div>
   );

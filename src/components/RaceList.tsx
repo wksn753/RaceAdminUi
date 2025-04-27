@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from "@mui/material";
+import {RaceDataTable} from "../components/RaceManagement/RacesDataTable";
+import {  RacesColumns} from "../types/Races";
 
 const BASE_URL = "https://dataapi-qy43.onrender.com";
 
@@ -82,44 +84,12 @@ const RaceList: React.FC<RaceListProps> = ({ onEdit, refresh }) => {
     return `${point.latitude.toFixed(4)}, ${point.longitude.toFixed(4)}`;
   };
 
+  const RacesColumnsData = RacesColumns(onEdit, handleDelete);
+
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Start Time</TableCell>
-            <TableCell>End Time</TableCell>
-            <TableCell>Starting Point</TableCell>
-            <TableCell>Ending Point</TableCell>
-            <TableCell>Racers</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {races.map((race) => (
-            <TableRow key={race._id}>
-              <TableCell>{race.name}</TableCell>
-              <TableCell>{new Date(race.startTime).toLocaleString()}</TableCell>
-              <TableCell>{race.endTime ? new Date(race.endTime).toLocaleString() : "Ongoing"}</TableCell>
-              <TableCell>{formatCoordinates(race.startingPoint)}</TableCell>
-              <TableCell>{formatCoordinates(race.endingPoint)}</TableCell>
-              <TableCell>
-                {race.racers.map((racer) => racer.username).join(", ")}
-              </TableCell>
-              <TableCell>
-                <Button onClick={() => onEdit(race)} color="primary">
-                  Edit
-                </Button>
-                <Button onClick={() => handleDelete(race._id)} color="secondary">
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+
+    <RaceDataTable columns={RacesColumnsData} data={races}  />
+   
   );
 };
 
