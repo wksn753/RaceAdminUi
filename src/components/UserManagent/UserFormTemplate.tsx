@@ -112,7 +112,7 @@ export function ProfileForm({ user, onClose, onSuccess }: ProfileFormProps) {
   }
   
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)}>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="border-grey border p-4 rounded">
       {error && (
         <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />

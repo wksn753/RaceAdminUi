@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Typography, Box, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Alert } from "@mui/material";
+import { Typography, Box, FormControl, InputLabel,  MenuItem, SelectChangeEvent, Alert } from "@mui/material";
 import TrackerTable from "../components/TrackerTable";
 import TrackerMap from "../components/TrackerMap";
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore, collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import { parse, isValid } from "date-fns";
+
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const firebaseConfig = {
   apiKey: "AIzaSyD2EC1qzcLkMhyNLaX0UhZUeenX8saZo1w",
@@ -291,17 +301,32 @@ const LiveTrackingPage: React.FC = () => {
           {error}
         </Alert>
       )}
-      <FormControl fullWidth sx={{ mb: 4 }}>
-        <InputLabel>Select Race</InputLabel>
-        <Select value={selectedRace} onChange={handleRaceChange} label="Select Race">
-          <MenuItem value="">Select a race</MenuItem>
+      <div className="mb-6 w-full">
+      <label htmlFor="race-select" className="mb-2 block text-sm font-medium text-foreground">
+        Select Race
+      </label>
+      <Select
+        value={selectedRace}
+        onValueChange={handleRaceChange}
+      >
+        <SelectTrigger
+          id="race-select"
+          className="w-full bg-background text-foreground border-border focus:ring-2 focus:ring-ring"
+        >
+          <SelectValue placeholder="Select a race" />
+        </SelectTrigger>
+        <SelectContent className="bg-background text-foreground border-border">
+          <SelectItem value="" disabled>
+            Select a race
+          </SelectItem>
           {races.map((race) => (
-            <MenuItem key={race._id} value={race._id}>
+            <SelectItem key={race._id} value={race._id}>
               {race.name}
-            </MenuItem>
+            </SelectItem>
           ))}
-        </Select>
-      </FormControl>
+        </SelectContent>
+      </Select>
+    </div>
       {selectedRace && (
         <>
         <Box>

@@ -39,7 +39,7 @@ const RacesPage: React.FC = () => {
     <div>
       {/* <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}> */}
         <Typography variant="h4">Races</Typography>
-        <Button onClick={() => setShowForm(true)}>
+        <Button onClick={() => setShowForm(true)} variant={"default"} >
           Add Race
         </Button>
      {/*  </Box> */}

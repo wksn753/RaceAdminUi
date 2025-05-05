@@ -227,7 +227,7 @@ export function RacesForm({ race, onClose }: RaceFormProps) {
   };
 
   return (
-    <div className="p-4 border rounded-lg mt-6">
+    <div className="p-4 border border-grey rounded-lg mt-6">
       <h2 className="text-lg font-semibold mb-4">{race ? "Edit Race" : "Add Race"}</h2>
       {error && (
         <Alert variant="destructive" className="mb-4">

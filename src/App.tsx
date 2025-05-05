@@ -1,119 +1,95 @@
-import React, { useEffect, useState, ReactElement } from "react";
+import { ThemeProvider } from "@/components/theme-provider"
+import React, { ReactElement } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Link,
   Navigate,
-  useNavigate,
 } from "react-router-dom";
-import { AppBar, Toolbar, Typography, Container, Button, Box } from "@mui/material"; // Import Box
-import axios from "axios";
 import UsersPage from "./pages/UsersPage";
 import RacesPage from "./pages/RacesPage";
 import LiveTrackingPage from "./pages/LiveTrackingPage";
 import LoginPage from "./pages/LoginPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
-import "./App.css";
 import { AppSidebar } from "./components/app-sidebar";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ModeToggle } from "@/components/mode-toggle"; // Import the ModeToggle component
+import './App.css'
 
 interface ProtectedRouteProps {
   element: ReactElement;
   requiredRole?: string;
 }
 
-// Get user from localStorage
-const getUser = () => {
-  const userString = localStorage.getItem("user");
-  if (userString) {
-    try {
-      return JSON.parse(userString);
-    } catch (e) {
-      return null;
-    }
-  }
-  return null;
-};
-
 // Protected route component with optional role check
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   element,
   requiredRole,
 }) => {
-  const token = localStorage.getItem("token");
-  const user = getUser();
-  const navigate = useNavigate();
+  const { authenticated, user } = useAuth();
 
-  useEffect(() => {
-    if (!token) {
-      navigate("/login", { replace: true });
-    } else if (requiredRole && (!user || user.type !== requiredRole)) {
-      navigate("/", { replace: true });
-    }
-  }, [token, user, requiredRole, navigate]);
+  if (!authenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
-  return token ? element : null;
+  if (requiredRole && user?.type !== requiredRole) {
+    return <Navigate to="/" replace />;
+  }
+
+  return element;
 };
 
-const App: React.FC = () => {
-  const [authenticated, setAuthenticated] = useState<boolean>(false);
-  const [userRole, setUserRole] = useState<string>("");
+const AppContent: React.FC = () => {
+  const { authenticated, logout } = useAuth();
 
-  useEffect(() => {
-    // Check authentication status on mount
-    const token = localStorage.getItem("token");
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      setAuthenticated(true);
-      const user = getUser();
-      if (user && user.type) {
-        setUserRole(user.type);
-      }
-    }
-  }, []);
-
-  const handleLogout = (): void => {
-    // Clear token and user data
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    delete axios.defaults.headers.common["Authorization"];
-    setAuthenticated(false);
-    setUserRole("");
-    // Navigate to login page
-    window.location.href = "/login";
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/login"; // Force redirect to login
   };
 
   return (
-    <Router>
-      <div className="flex min-h-screen w-full"> {/* Apply flex to the main container */}
-        {authenticated && (
-          <aside className="w-64 flex-shrink-0"> {/* Fixed width for sidebar, don't shrink */}
-            <AppSidebar handleLogout={handleLogout} />
-          </aside>
-        )}
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        {/* Sidebar */}
+        {authenticated && <AppSidebar handleLogout={handleLogout} />}
 
-        <main className="flex-1 overflow-y-auto"> {/* Take remaining space, allow vertical scroll */}
-          {!authenticated && (
-            <AppBar position="static">
-              <Toolbar>
-                <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                  Racer Admin Dashboard
-                </Typography>
-                <Button color="inherit" component={Link} to="/login">
-                  Login
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto">
+          {/* Header with mobile sidebar trigger and theme toggle */}
+          <div className="p-4 border-b border-grey flex items-center justify-between">
+            {authenticated && (
+              <SidebarTrigger className="lg:hidden">
+                <Button variant="outline" size="icon">
+                  <Menu className="h-6 w-6" />
                 </Button>
-              </Toolbar>
-            </AppBar>
-          )}
-          <Container sx={{ mt: 4 }}>
+              </SidebarTrigger>
+            )}
+            
+            <h1 className="text-xl font-semibold">Racer Admin Dashboard</h1>
+            
+            <div className="flex items-center gap-2">
+              {/* Add the theme toggle */}
+              <ModeToggle />
+              
+              {!authenticated && (
+                <Button asChild variant="outline">
+                  <Link to="/login">Login</Link>
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Content area */}
+          <div className="p-4 sm:p-6">
             <Routes>
-              {/* Public route */}
               <Route
                 path="/login"
                 element={authenticated ? <Navigate to="/" /> : <LoginPage />}
               />
-
-              {/* Basic protected routes accessible to all authenticated users */}
               <Route
                 path="/"
                 element={<ProtectedRoute element={<UsersPage />} />}
@@ -130,26 +106,33 @@ const App: React.FC = () => {
                 path="/leader-Board"
                 element={<ProtectedRoute element={<LeaderboardPage />} />}
               />
-
-              {/* Admin-only routes */}
-              {/* Example: <Route path="/admin-dashboard" element={<ProtectedRoute element={<AdminDashboardPage />} requiredRole="admin" />} /> */}
-
-              {/* Redirect any unknown routes to login or dashboard based on auth state */}
               <Route
                 path="*"
                 element={
                   authenticated ? (
-                    <Navigate to="/" replace />
+                    <Navigate to="/races" replace />
                   ) : (
                     <Navigate to="/login" replace />
                   )
                 }
               />
             </Routes>
-          </Container>
+          </div>
         </main>
       </div>
-    </Router>
+    </SidebarProvider>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <Router>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </Router>
+    </ThemeProvider>
   );
 };
 
