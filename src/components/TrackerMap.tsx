@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-
 import "leaflet/dist/leaflet.css";
 import L, { LatLngExpression } from "leaflet";
 
-// Fix Leaflet marker icons (using version 1.7.1 as in your original code)
+// Fix Leaflet marker icons
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
@@ -146,7 +146,12 @@ const TrackerMap: React.FC<TrackerMapProps> = ({ trackerData, racers }) => {
       : defaultCenter;
 
   return (
-    <MapContainer center={mapCenter} zoom={13} style={{ height: "400px", width: "100%" }}>
+    <MapContainer
+      center={mapCenter}
+      zoom={13}
+      style={{ height: "400px", width: "100%" }}
+      className="rounded-lg" // Add Tailwind class for rounded corners
+    >
       <MapUpdater center={mapCenter} />
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

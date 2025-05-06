@@ -1,4 +1,4 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import { Flag, Home, LogOut, MapPin, Settings, Trophy } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -10,36 +10,36 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
-  SidebarFooter
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 import { useEffect } from "react";
 
-// Menu items.
+// Menu items with updated icons
 const items = [
   {
     title: "Home",
     url: "/login",
-    icon: Home,
+    icon: Home, // No change, already appropriate
   },
   {
     title: "Races",
     url: "/races",
-    icon: Inbox,
+    icon: Flag, // Changed to Flag to represent racing
   },
   {
     title: "Tracking",
     url: "/live-tracking",
-    icon: Calendar,
+    icon: MapPin, // Changed to MapPin for location tracking
   },
   {
     title: "Leaderboard",
     url: "/leader-Board",
-    icon: Search,
+    icon: Trophy, // Changed to Trophy for rankings
   },
   {
     title: "Settings",
     url: "#",
-    icon: Settings,
+    icon: Settings, // No change, already appropriate
   },
 ];
 

@@ -20,7 +20,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -293,7 +293,7 @@ export function RacesForm({ race, onClose }: RaceFormProps) {
           {/* Starting Point Map */}
           <div>
             <Label>Select Starting Point</Label>
-            <div className="h-[300px] my-2">
+            <div className="h-[300px] my-2 rounded-lg overflow-hidden">
               <MapContainer
                 center={[51.505, -0.09]}
                 zoom={13}
@@ -325,7 +325,7 @@ export function RacesForm({ race, onClose }: RaceFormProps) {
           {/* Ending Point Map */}
           <div>
             <Label>Select Ending Point</Label>
-            <div className="h-[300px] my-2">
+            <div className="h-[300px] my-2 rounded-lg overflow-hidden">
               <MapContainer
                 center={[51.505, -0.09]}
                 zoom={13}
