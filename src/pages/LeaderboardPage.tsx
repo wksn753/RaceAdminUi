@@ -5,7 +5,6 @@ import {
   Box, 
   FormControl, 
   InputLabel, 
-  Select, 
   MenuItem, 
   SelectChangeEvent, 
   Alert, 
@@ -22,6 +21,17 @@ interface Race {
   _id: string;
   name: string;
 }
+
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 
 interface LeaderboardEntry {
   racerId: string;
@@ -92,9 +102,9 @@ const LeaderboardPage: React.FC = () => {
     };
     fetchLeaderboard();
   }, [selectedRace]);
-
-  const handleRaceChange = (event: SelectChangeEvent) => {
-    setSelectedRace(event.target.value);
+  
+  const handleRaceChange = (value: string) => {
+    setSelectedRace(value);
   };
 
   const formatDuration = (seconds: number): string => {
@@ -114,17 +124,33 @@ const LeaderboardPage: React.FC = () => {
           {error}
         </Alert>
       )}
-      <FormControl fullWidth sx={{ mb: 4, maxWidth: 300 }}>
-        <InputLabel>Select Race</InputLabel>
-        <Select value={selectedRace} onChange={handleRaceChange} label="Select Race">
-          <MenuItem value="">Select a race</MenuItem>
+      <div className="mb-6 w-full">
+      <label htmlFor="race-select" className="mb-2 block text-sm font-medium text-foreground">
+        Select Race
+      </label>
+      <Select
+        value={selectedRace}
+        onValueChange={handleRaceChange}
+      >
+        <SelectTrigger
+          id="race-select"
+          className="w-full bg-background text-foreground border-border focus:ring-2 focus:ring-ring"
+        >
+          <SelectValue placeholder="Select a race" />
+        </SelectTrigger>
+        <SelectContent className="bg-background text-foreground border-border">
+          <SelectItem value="Races" disabled>
+            Select a race
+          </SelectItem>
           {races.map((race) => (
-            <MenuItem key={race._id} value={race._id}>
+            <SelectItem key={race._id} value={race._id}>
               {race.name}
-            </MenuItem>
+            </SelectItem>
           ))}
-        </Select>
-      </FormControl>
+        </SelectContent>
+      </Select>
+    </div>
+
       {selectedRace && leaderboard.length > 0 && (
         <TableContainer component={Paper}>
           <Table>

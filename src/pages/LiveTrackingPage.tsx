@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Typography, Box, FormControl, InputLabel,  MenuItem, SelectChangeEvent, Alert } from "@mui/material";
-import TrackerTable from "../components/TrackerTable";
-import TrackerMap from "../components/TrackerMap";
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import {
+  initializeApp,
+} from "firebase/app";
 import { getFirestore, collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import { parse, isValid } from "date-fns";
-
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import TrackerMap from "../components/TrackerMap";
+import {TrackerDataTable} from "../components/TrackerManagement/TrackerDataTable";
+import { TrackerColumns } from "../types/TrackerData";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD2EC1qzcLkMhyNLaX0UhZUeenX8saZo1w",
@@ -25,11 +25,10 @@ const firebaseConfig = {
   storageBucket: "rutina-orion.firebasestorage.app",
   messagingSenderId: "873985298780",
   appId: "1:873985298780:web:2c2634659c6a0d4805f199",
-  measurementId: "G-SL7FG7FHXM"
+  measurementId: "G-SL7FG7FHXM",
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const db = getFirestore(app);
 const carTrackRef = collection(db, "CarTrack");
 
@@ -77,8 +76,8 @@ const LiveTrackingPage: React.FC = () => {
 
   const getAuthHeaders = () => ({
     headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`
-    }
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
   });
 
   useEffect(() => {
@@ -86,12 +85,10 @@ const LiveTrackingPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.post(
-          `${BASE_URL}/all`,
-          {},
-          getAuthHeaders()
-        );
-        setRaces(response.data);
+        const response = await axios.post(`${BASE_URL}/all`, {}, getAuthHeaders());
+        // Filter out races with empty _id to prevent SelectItem issues
+        const validRaces = response.data.filter((race: Race) => race._id && race._id.trim() !== "");
+        setRaces(validRaces);
       } catch (error: any) {
         setError(error.message || "Failed to load races. Please try again.");
         console.error("Error fetching races:", error);
@@ -108,16 +105,12 @@ const LiveTrackingPage: React.FC = () => {
     const race = races.find((r) => r._id === selectedRace);
     if (!race) return;
 
-    console.log(race);
-    setRacers(race.racers.map(r => ({ _id: r.userId._id, username: r.userId.username })));
-
-    //setRacers(race.racers.map(r => ({ _id: r.userId._id, username: r.userId.username })));
+    setRacers(race.racers.map((r) => ({ _id: r.userId._id, username: r.userId.username })));
     setTrackerData([]);
     setError(null);
 
     const fetchInitialData = async () => {
       const initialData: TrackerData[] = [];
-
       try {
         const q = query(carTrackRef, where("RaceID", "==", race.name));
         const querySnapshot = await getDocs(q);
@@ -131,7 +124,7 @@ const LiveTrackingPage: React.FC = () => {
           }
           const racer = race.racers.find((racer) => racer.userId.username === data.CarID);
           if (racer) {
-            checkStartEndPoints(race, racer.userId._id, latitude, longitude,parseTime(data.Time).toISOString());
+            checkStartEndPoints(race, racer.userId._id, latitude, longitude, parseTime(data.Time).toISOString());
           }
           initialData.push({
             documentId: doc.id,
@@ -168,7 +161,7 @@ const LiveTrackingPage: React.FC = () => {
 
           const racer = race.racers.find((racer) => racer.userId.username === data.CarID);
           if (racer) {
-            checkStartEndPoints(race, racer.userId._id, latitude, longitude,parseTime(data.Time).toISOString());
+            checkStartEndPoints(race, racer.userId._id, latitude, longitude, parseTime(data.Time).toISOString());
           }
 
           if (change.type === "added") {
@@ -256,10 +249,9 @@ const LiveTrackingPage: React.FC = () => {
     return new Date();
   };
 
-  const checkStartEndPoints = async (race: Race, racerId: string, latitude: number, longitude: number,actionDate:string) => {
-    const threshold = 0.01; // Adjust based on your needs
-    //log 
-    console.log(latitude+" "+longitude+" "+race.startingPoint.latitude+" "+race.startingPoint.longitude+" "+race.endingPoint.latitude+" "+race.endingPoint.longitude+"")
+  const checkStartEndPoints = async (race: Race, racerId: string, latitude: number, longitude: number, actionDate: string) => {
+    const threshold = 0.01;
+    console.log(latitude + " " + longitude + " " + race.startingPoint.latitude + " " + race.startingPoint.longitude + " " + race.endingPoint.latitude + " " + race.endingPoint.longitude + "");
     try {
       if (
         Math.abs(latitude - race.startingPoint.latitude) < threshold &&
@@ -267,7 +259,7 @@ const LiveTrackingPage: React.FC = () => {
       ) {
         await axios.post(
           `${BASE_URL}/start-racer`,
-          { id: race._id, racerId:racerId,startTime:actionDate },
+          { id: race._id, racerId, startTime: actionDate },
           getAuthHeaders()
         );
       }
@@ -277,7 +269,7 @@ const LiveTrackingPage: React.FC = () => {
       ) {
         await axios.post(
           `${BASE_URL}/end-racer`,
-          { id: race._id, racerId:racerId,endTime:actionDate },
+          { id: race._id, racerId, endTime: actionDate },
           getAuthHeaders()
         );
       }
@@ -286,62 +278,60 @@ const LiveTrackingPage: React.FC = () => {
     }
   };
 
-  const handleRaceChange = (event: SelectChangeEvent) => {
-    setSelectedRace(event.target.value);
+  const handleRaceChange = (value: string) => {
+    setSelectedRace(value); // Update selectedRace with the new value
   };
 
   return (
-    <div>
-      <Typography variant="h4" gutterBottom>
-        Live Race Tracking
-      </Typography>
-      {loading && <Typography>Loading races...</Typography>}
+    <div className="space-y-6 bg-background p-4">
+      <h1 className="text-3xl font-bold text-foreground">Live Race Tracking</h1>
+
+      {loading && <p className="text-muted-foreground">Loading races...</p>}
+
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
+        <Alert variant="destructive" className="border-destructive bg-destructive/10 text-destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
       <div className="mb-6 w-full">
-      <label htmlFor="race-select" className="mb-2 block text-sm font-medium text-foreground">
-        Select Race
-      </label>
-      <Select
-        value={selectedRace}
-        onValueChange={handleRaceChange}
-      >
-        <SelectTrigger
-          id="race-select"
-          className="w-full bg-background text-foreground border-border focus:ring-2 focus:ring-ring"
-        >
-          <SelectValue placeholder="Select a race" />
-        </SelectTrigger>
-        <SelectContent className="bg-background text-foreground border-border">
-          <SelectItem value="" disabled>
-            Select a race
-          </SelectItem>
-          {races.map((race) => (
-            <SelectItem key={race._id} value={race._id}>
-              {race.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+        <label htmlFor="race-select" className="mb-2 block text-sm font-medium text-foreground">
+          Select Race
+        </label>
+        <Select value={selectedRace} onValueChange={handleRaceChange}>
+          <SelectTrigger
+            id="race-select"
+            className="w-full bg-background text-foreground border-border focus:ring-2 focus:ring-ring"
+          >
+            <SelectValue placeholder="Select a race" />
+          </SelectTrigger>
+          <SelectContent className="bg-background text-foreground border-border">
+            {races
+              .filter((race) => race._id && race._id.trim() !== "")
+              .map((race) => (
+                <SelectItem key={race._id} value={race._id}>
+                  {race.name}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {selectedRace && (
         <>
-        <Box>
-            <Typography variant="h5" gutterBottom>
-              Live Map
-            </Typography>
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold text-foreground">Live Map</h2>
             <TrackerMap trackerData={trackerData} racers={racers} />
-          </Box>
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h5" gutterBottom>
-              Tracker Data
-            </Typography>
-            <TrackerTable trackerData={trackerData} racers={racers} />
-          </Box>
-          
+          </div>
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold text-foreground">Tracker Data</h2>
+            <TrackerDataTable
+              columns={TrackerColumns(trackerData, racers)}
+              data={trackerData}
+            />
+          </div>
         </>
       )}
     </div>

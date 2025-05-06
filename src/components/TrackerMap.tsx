@@ -12,7 +12,7 @@ L.Icon.Default.mergeOptions({
 
 interface Racer {
   _id: string;
-  name: string;
+  username: string;
 }
 
 interface TrackerData {
@@ -96,7 +96,7 @@ const Legend: React.FC<{ racersWithPositions: { racer: Racer; color: string }[] 
               marginRight: "5px",
             }}
           />
-          <span>{racer.name}</span>
+          <span>{racer.username}</span>
         </div>
       ))}
     </div>
@@ -109,7 +109,7 @@ const TrackerMap: React.FC<TrackerMapProps> = ({ trackerData, racers }) => {
     const racerData = trackerData
       .filter(
         (data) =>
-          (data.racerId === racer._id || data.CarID === racer.name) &&
+          (data.racerId === racer._id || data.CarID === racer.username) &&
           data.latitude !== null &&
           data.longitude !== null
       )
@@ -160,7 +160,7 @@ const TrackerMap: React.FC<TrackerMapProps> = ({ trackerData, racers }) => {
             icon={createCustomIcon(color)}
           >
             <Popup>
-              <strong>{racer.name}</strong>
+              <strong>{racer.username}</strong>
               <br />
               Acceleration: x: {latestPosition.accel.x.toFixed(2)}, y: {latestPosition.accel.y.toFixed(2)}, z: {latestPosition.accel.z.toFixed(2)}
               <br />
