@@ -85,9 +85,6 @@ export function AppSidebar({ handleLogout }: AppSidebarProps) {
     transition: "background-color 0.2s"
   };
 
-  const buttonHoverStyle = {
-    backgroundColor: "var(--sidebar-accent, rgb(243, 244, 246))"
-  };
 
   const footerStyle = {
     backgroundColor: "var(--sidebar, rgb(250, 250, 250))",

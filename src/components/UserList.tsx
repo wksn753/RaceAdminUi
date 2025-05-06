@@ -4,14 +4,6 @@ import {DataTable} from "../components/data-table";
 import {UserColumns} from "../types/Users";
 
 import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper, 
-  Button, 
   Alert,
   CircularProgress,
   Box

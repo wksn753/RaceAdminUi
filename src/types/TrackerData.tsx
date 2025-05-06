@@ -34,7 +34,7 @@ export type TrackerData = {
 
 // Updated TrackerColumns to accept trackerData and racers as parameters
 export const TrackerColumns = (
-  trackerData: TrackerData[],
+  
   racers: Racer[]
 ): ColumnDef<TrackerData>[] => [
   {

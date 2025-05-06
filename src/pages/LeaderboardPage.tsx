@@ -1,20 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import {LeaderboardDataTable} from "../components/LeaderboardManagement/LeaderboardTable";
+import {LeaderboardColumns} from "../types/LeaderboardData";
 import { 
   Typography, 
   Box, 
-  FormControl, 
-  InputLabel, 
-  MenuItem, 
-  SelectChangeEvent, 
-  Alert, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper 
+  Alert,
 } from "@mui/material";
 
 interface Race {
@@ -25,9 +16,7 @@ interface Race {
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -102,16 +91,11 @@ const LeaderboardPage: React.FC = () => {
     };
     fetchLeaderboard();
   }, [selectedRace]);
-  
+
   const handleRaceChange = (value: string) => {
     setSelectedRace(value);
   };
 
-  const formatDuration = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}m ${remainingSeconds}s`;
-  };
 
   return (
     <Box sx={{ p: 3 }}>
@@ -152,30 +136,13 @@ const LeaderboardPage: React.FC = () => {
     </div>
 
       {selectedRace && leaderboard.length > 0 && (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Rank</TableCell>
-                <TableCell>Racer</TableCell>
-                <TableCell>Start Time</TableCell>
-                <TableCell>End Time</TableCell>
-                <TableCell>Duration</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {leaderboard.map((entry, index) => (
-                <TableRow key={entry.racerId}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{entry.username}</TableCell>
-                  <TableCell>{new Date(entry.startTime).toLocaleString()}</TableCell>
-                  <TableCell>{new Date(entry.endTime).toLocaleString()}</TableCell>
-                  <TableCell>{formatDuration(entry.duration)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <div>
+    <div className="container mx-auto py-10">
+      <LeaderboardDataTable columns={LeaderboardColumns()} data={leaderboard} />
+    </div>
+       
+        </div>
+
       )}
       {selectedRace && leaderboard.length === 0 && !loading && (
         <Typography>No completed races yet.</Typography>
