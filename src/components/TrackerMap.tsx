@@ -148,7 +148,7 @@ const TrackerMap: React.FC<TrackerMapProps> = ({ trackerData, racers }) => {
   return (
     <MapContainer
       center={mapCenter}
-      zoom={13}
+      zoom={16}
       style={{ height: "400px", width: "100%" }}
       className="rounded-lg" // Add Tailwind class for rounded corners
     >
@@ -176,7 +176,7 @@ const TrackerMap: React.FC<TrackerMapProps> = ({ trackerData, racers }) => {
           {positions.length > 1 && (
             <Polyline
               positions={positions}
-              pathOptions={{ color, weight: 4, opacity: 0.7 }}
+              pathOptions={{ color, weight: 2, opacity: 0.8 }}
             />
           )}
         </React.Fragment>
