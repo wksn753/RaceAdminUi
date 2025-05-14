@@ -47,21 +47,24 @@ const generateColor = (index: number): string => {
   return colors[index % colors.length];
 };
 
-// Function to create a custom marker icon with a specific color
+// Function to create a custom marker icon with a specific color (transparent background, colored border)
 const createCustomIcon = (color: string) => {
   return L.divIcon({
     html: `
-      <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path fill="${color}" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5z"/>
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="transparent" stroke="${color}" stroke-width="4">
+        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_iconCarrier">
+          <polygon points="52 12 12 28 28 36 36 52 52 12"></polygon>
+        </g>
       </svg>
     `,
-    className: "",
+    className: "custom-marker-icon", // Add a custom class name
     iconSize: [24, 24],
     iconAnchor: [12, 24],
     popupAnchor: [0, -24],
   });
 };
-
 // Component to smoothly update the map's center
 const MapUpdater: React.FC<{ center: [number, number] }> = ({ center }) => {
   const map = useMap();
@@ -176,7 +179,7 @@ const TrackerMap: React.FC<TrackerMapProps> = ({ trackerData, racers }) => {
           {positions.length > 1 && (
             <Polyline
               positions={positions}
-              pathOptions={{ color, weight: 2, opacity: 0.8 }}
+              pathOptions={{ color, weight: 1, opacity: 0.9 }}
             />
           )}
         </React.Fragment>

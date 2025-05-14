@@ -97,7 +97,28 @@ body {
   background-color: var(--background);
   color: var(--foreground);
 }
+.custom-marker-icon {
+  background: transparent !important; /* Ensure transparency */
+  border: none !important; /* Remove any default border */
+}
 
+.custom-marker-icon svg {
+  display: block; /* Ensure the SVG takes up the div's space */
+}
+
+.leaflet-container .custom-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-container .custom-marker-icon > div { /* Target the direct child div (if any) */
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-container .custom-marker-icon svg {
+  display: block;
+}
 /* Additional fixes for transparent components */
 /* Fix for dropdown menus */
 [data-slot="dropdown-menu-label"],
