@@ -1,4 +1,4 @@
-import { Flag, Home, LogOut, MapPin, Settings, Trophy } from "lucide-react";
+import { Flag, Home,  MapPin, Settings, Trophy } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Sidebar,
