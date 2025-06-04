@@ -16,7 +16,7 @@ interface Race {
 
 interface Racer {
   _id: string;
-  name: string;
+  username:string;
 }
 
 const RacesPage: React.FC = () => {

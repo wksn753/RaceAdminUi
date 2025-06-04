@@ -60,7 +60,7 @@ const SearchControl: React.FC<{ onSearchResult: (latlng: L.LatLng) => void }> = 
 
   useEffect(() => {
     const provider = new OpenStreetMapProvider();
-    const searchControl = new GeoSearchControl({
+    const searchControl = (GeoSearchControl as any)({
       provider,
       style: 'bar',
       showMarker: true,
@@ -68,11 +68,11 @@ const SearchControl: React.FC<{ onSearchResult: (latlng: L.LatLng) => void }> = 
       retainZoomLevel: false,
       animateZoom: true,
       keepResult: false,
-    });
+    } );
 
     map.addControl(searchControl);
 
-    map.on('geosearch/showlocation', (result) => {
+    map.on("geosearch/showlocation", (result: any) => { // Cast result to 'any'
       const latlng = L.latLng(result.location.y, result.location.x);
       onSearchResult(latlng);
     });

@@ -328,7 +328,7 @@ const LiveTrackingPage: React.FC = () => {
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold text-foreground">Tracker Data</h2>
             <TrackerDataTable
-              columns={TrackerColumns(trackerData, racers)}
+             columns={TrackerColumns(racers)}
               data={trackerData}
             />
           </div>

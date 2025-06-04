@@ -9,7 +9,7 @@ import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-lea
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { GeoSearchControl, OpenStreetMapProvider } from "leaflet-geosearch";
-import { SearchResult } from 'leaflet-geosearch';
+
 import "leaflet-geosearch/dist/geosearch.css";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
