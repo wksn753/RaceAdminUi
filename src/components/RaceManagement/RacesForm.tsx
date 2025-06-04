@@ -9,6 +9,7 @@ import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-lea
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { GeoSearchControl, OpenStreetMapProvider } from "leaflet-geosearch";
+import { SearchResult } from 'leaflet-geosearch';
 import "leaflet-geosearch/dist/geosearch.css";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,7 +107,8 @@ const SearchControl: React.FC<{ onSearchResult: (latlng: L.LatLng) => void }> = 
 
   useEffect(() => {
     const provider = new OpenStreetMapProvider();
-    const searchControl = new GeoSearchControl({
+    // Using 'as any' for the constructor to bypass TS7009 if it's the issue
+    const searchControl = new (GeoSearchControl as any)({
       provider,
       style: "bar",
       showMarker: true,
@@ -118,7 +120,15 @@ const SearchControl: React.FC<{ onSearchResult: (latlng: L.LatLng) => void }> = 
 
     map.addControl(searchControl);
 
-    map.on("geosearch/showlocation", (result) => {
+    // Using 'as any' for the event to access location if types are missing
+    map.on("geosearch/showlocation", (result: any) => { // Cast result to 'any'
+      // This part is crucial:
+      // result.location typically contains:
+      //   x: longitude
+      //   y: latitude
+      //   label: display string
+      //   bounds: L.LatLngBounds
+      // You need to pass latitude first, then longitude to L.latLng
       const latlng = L.latLng(result.location.y, result.location.x);
       onSearchResult(latlng);
     });
