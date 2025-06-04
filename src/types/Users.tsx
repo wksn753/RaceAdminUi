@@ -1,15 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, Edit, Trash } from "lucide-react"
+import {  Edit, Trash } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+
 
 // This type is used to define the shape of our data.
 export type User = {

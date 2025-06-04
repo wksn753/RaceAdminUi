@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import RaceList from "../components/RaceList";
 
-import { Typography, Box } from "@mui/material";
+import { Typography } from "@mui/material";
 import { Button } from "@/components/ui/button"
 import {RacesForm} from "../components/RaceManagement/RacesForm"
 
