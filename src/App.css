@@ -58,9 +58,11 @@
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
+  /* Body background - REALLY dark Midnight Blue, almost black */
+  --background: oklch(0.08 0.081 280.9);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
+  /* Card and Sidebar background - slightly lighter, but still very close to black */
+  --card: oklch(0.10 0.081 280.9);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.21 0.006 285.885);
   --popover-foreground: oklch(0.985 0 0);
@@ -81,7 +83,7 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.006 285.885);
+  --sidebar: oklch(0.10 0.081 280.9); /* Applied here */
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -90,7 +92,6 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
 }
-
 
 /* Base styles that respect theme variables */
 body {
@@ -111,7 +112,8 @@ body {
   border: none !important;
 }
 
-.leaflet-container .custom-marker-icon > div { /* Target the direct child div (if any) */
+.leaflet-container .custom-marker-icon > div {
+  /* Target the direct child div (if any) */
   background: transparent !important;
   border: none !important;
 }
@@ -133,7 +135,7 @@ body {
 }
 
 /* Fix for buttons and interactive elements */
-button, 
+button,
 a[role="button"],
 [data-variant="default"] {
   background-color: var(--background);
@@ -156,7 +158,7 @@ a[role="button"],
   background-color: var(--sidebar) !important;
 }
 
-.SidebarHeader, 
+.SidebarHeader,
 .SidebarFooter {
   background-color: var(--sidebar) !important;
   border-color: var(--sidebar-border) !important;
@@ -187,7 +189,7 @@ a[role="button"],
 [role="menu"],
 [role="menuitem"],
 [data-radix-popper-content-wrapper] {
-  background-color: var(--background) !important;
+  background-color: var(--popover) !important;
   color: var(--foreground) !important;
 }
 
@@ -286,7 +288,7 @@ tr:nth-child(even),
 [data-slot="table-row"]:nth-child(even) {
   background-color: var(--muted) !important;
 }
-.border-grey{
+.border-grey {
   border-color: var(--input);
 }
 
@@ -357,11 +359,11 @@ footer,
 }
 
 [data-variant="destructive"] {
-  background-color: var(--destructive) !important; 
+  background-color: var(--destructive) !important;
   color: var(--destructive-foreground) !important;
 }
 
-/* 
+/*
  * Add this to your global CSS file to fix transparent components in dark mode
  * This targets specific shadcn components that have transparency issues
  */
@@ -371,58 +373,45 @@ footer,
 .dark [role="dialog"],
 .dark [role="menu"] {
   --tw-bg-opacity: 1 !important;
-  background-color: hsl(var(--popover)) !important;
-  color: hsl(var(--popover-foreground)) !important;
+  background-color: var(--popover) !important;
+  color: var(--popover-foreground) !important;
 }
 
 /* Fix for dropdown menu items */
 .dark [role="menuitem"] {
   --tw-bg-opacity: 1 !important;
-  background-color: hsl(var(--popover)) !important;
-  color: hsl(var(--popover-foreground)) !important;
+  background-color: var(--popover) !important;
+  color: var(--popover-foreground) !important;
 }
 
 /* Fix for dropdown menu items on hover */
 .dark [role="menuitem"]:hover {
   --tw-bg-opacity: 1 !important;
-  background-color: hsl(var(--accent)) !important;
-  color: hsl(var(--accent-foreground)) !important;
+  background-color: var(--accent) !important;
+  color: var(--accent-foreground) !important;
 }
 
 /* Fix for command menu items */
 .dark [cmdk-item] {
   --tw-bg-opacity: 1 !important;
-  background-color: hsl(var(--popover)) !important;
+  background-color: var(--popover) !important;
 }
 
 /* Fix for select items */
 .dark [role="option"] {
   --tw-bg-opacity: 1 !important;
-  background-color: hsl(var(--popover)) !important;
+  background-color: var(--popover) !important;
 }
 
 /* Fix for dialog/sheet content */
 .dark .dialog-content,
 .dark .sheet-content {
   --tw-bg-opacity: 1 !important;
-  background-color: hsl(var(--background)) !important;
+  background-color: var(--background) !important;
 }
 
 /* Fix for other components with known transparency issues */
 .dark .card,
 .dark .popover-content {
   --tw-bg-opacity: 1 !important;
-}
-
-/* 
- * Adjust the CSS variable format based on your project
- * If you're using RGB values (like in your pasted code), you'd use:
- */
-
-/* Example for RGB format variables */
-.dark [data-radix-popper-content-wrapper] > div,
-.dark [role="dialog"],
-.dark [role="menu"] {
-  background-color: var(--popover) !important;
-  color: var(--popover-foreground) !important;
 }
